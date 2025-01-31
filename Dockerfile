@@ -51,22 +51,21 @@ ENV VERSION_GIT_HASH=$VERSION_GIT_HASH
 ARG TARGETARCH
 
 RUN GOARCH=$TARGETARCH go install -ldflags="-w -s\
-      -X tailscale.com/version.Long=$VERSION_LONG \
-      -X tailscale.com/version.Short=$VERSION_SHORT \
-      -X tailscale.com/version.GitCommit=$VERSION_GIT_HASH" \
-      -v ./cmd/tailscale ./cmd/tailscaled
+    -X tailscale.com/version.Long=$VERSION_LONG \
+    -X tailscale.com/version.Short=$VERSION_SHORT \
+    -X tailscale.com/version.GitCommit=$VERSION_GIT_HASH" \
+    -v ./cmd/tailscale ./cmd/tailscaled
 
 RUN upx /go/bin/tailscale && upx /go/bin/tailscaled
 
 FROM alpine:3.19
 
-RUN apk add --no-cache ca-certificates nftables iproute2 bash openssh curl jq
+RUN apk add --no-cache ca-certificates iptables iptables-legacy iproute2 bash curl jq
 
-RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa
-RUN ssh-keygen -f /etc/ssh/ssh_host_dsa_key -N '' -t dsa
+RUN rm /sbin/iptables && ln -s /sbin/iptables-legacy /sbin/iptables
+RUN rm /sbin/ip6tables && ln -s /sbin/ip6tables-legacy /sbin/ip6tables
 
 COPY --from=build-env /go/bin/* /usr/local/bin/
-COPY sshd_config /etc/ssh/
 COPY tailscale.sh /usr/local/bin
 
 EXPOSE 22

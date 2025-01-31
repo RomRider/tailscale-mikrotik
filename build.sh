@@ -3,9 +3,9 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 #
-# Updates tailscale respository and runs `docker build` with flags configured for 
-# docker distribution. 
-# 
+# Updates tailscale respository and runs `docker build` with flags configured for
+# docker distribution.
+#
 ############################################################################
 #
 # WARNING: Tailscale is not yet officially supported in Docker,
@@ -26,9 +26,9 @@
 # Set PLATFORM as required for your router model. See:
 # https://mikrotik.com/products/matrix
 #
-PLATFORM="linux/amd64"
-TAILSCALE_VERSION=1.78.1
-VERSION=0.1.34
+PLATFORM="linux/arm64"
+TAILSCALE_VERSION=1.80.0
+VERSION=0.1.35
 
 set -eu
 
@@ -39,7 +39,7 @@ then
     git -c advice.detachedHead=false clone https://github.com/tailscale/tailscale.git --branch v$TAILSCALE_VERSION
 fi
 
-TS_USE_TOOLCHAIN="Y"
+export TS_USE_TOOLCHAIN="Y"
 cd tailscale && eval $(./build_dist.sh shellvars) && cd ..
 
 docker buildx build \
@@ -49,6 +49,6 @@ docker buildx build \
   --build-arg VERSION_SHORT=$VERSION_SHORT \
   --build-arg VERSION_GIT_HASH=$VERSION_GIT_HASH \
   --platform $PLATFORM \
-  --load -t ghcr.io/fluent-networks/tailscale-mikrotik:$VERSION .
+  --load -t romrider/tailscale-mikrotik:$VERSION -t romrider/tailscale-mikrotik:latest .
 
-docker save -o tailscale.tar ghcr.io/fluent-networks/tailscale-mikrotik:$VERSION
+docker save -o tailscale.tar romrider/tailscale-mikrotik:$VERSION
